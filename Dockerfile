@@ -1,5 +1,6 @@
 FROM php:8.2-fpm-alpine
 
+# Actualiza los índices de paquetes y instala dependencias comunes y de construcción
 RUN apk update --no-cache && apk add --no-cache \
     nginx \
     git \
@@ -17,13 +18,15 @@ RUN apk update --no-cache && apk add --no-cache \
     libxml2-dev \
     sqlite-dev \
     libc-dev \
-    build-base
+    build-base \
+    # ¡NUEVO: Añadir la dependencia de desarrollo para OpenSSL!
+    openssl-dev
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN docker-php-ext-configure gd --with-jpeg --with-webp
 
-# INSTALACIÓN DE EXTENSIONES - ELIMINANDO 'json'
+# Instalación de extensiones
 RUN docker-php-ext-install -j$(nproc) pdo_mysql
 RUN docker-php-ext-install -j$(nproc) pdo_pgsql
 RUN docker-php-ext-install -j$(nproc) zip
@@ -31,9 +34,9 @@ RUN docker-php-ext-install -j$(nproc) gd
 RUN docker-php-ext-install -j$(nproc) intl
 RUN docker-php-ext-install -j$(nproc) bcmath
 RUN docker-php-ext-install -j$(nproc) ctype
-# REMOVIDA: RUN docker-php-ext-install -j$(nproc) json
+# La extensión 'json' ya fue removida
 RUN docker-php-ext-install -j$(nproc) mbstring
-RUN docker-php-ext-install -j$(nproc) openssl
+RUN docker-php-ext-install -j$(nproc) openssl # Esta línea es la que ahora debería funcionar
 RUN docker-php-ext-install -j$(nproc) tokenizer
 RUN docker-php-ext-install -j$(nproc) xml
 
