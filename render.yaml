@@ -1,0 +1,100 @@
+# render.yaml
+services:
+  - type: web # Servicio para tu API Laravel principal
+    name: tu-app-api
+    env: docker
+    repo: https://github.com/DANIELCASHOR2/Wumena.git # URL de tu repo
+    branch: main
+    rootDir: ./ # La raíz de tu Dockerfile
+    plan: free # Puedes elegir tu plan
+    healthCheckPath: / # o /api/health para un endpoint específico
+    envVars:
+      - key: APP_NAME
+        value: TuApp
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        # ¡Genera esto con php artisan key:generate y ponlo aquí!
+        # O como una variable secreta si Render lo permite
+        value: base64:TuAppKeyGenerada
+      - key: APP_DEBUG
+        value: 'false'
+      - key: APP_URL
+        # Render te dará esta URL después del despliegue, puedes editarla luego
+        value: https://tu-app-api.onrender.com
+      # -- Configuración de la base de datos (MUY IMPORTANTE) --
+      - key: DB_CONNECTION
+        value: pgsql # o mysql
+      - key: DB_HOST
+        # Si usas DB de Render, será la URL de tu DB. Si es Railway, ponla aquí.
+        value: tu-host-de-base-de-datos
+      - key: DB_PORT
+        value: '5432' # o 3306
+      - key: DB_DATABASE
+        value: tu-nombre-de-base-de-datos
+      - key: DB_USERNAME
+        value: tu-usuario-de-base-de-datos
+      - key: DB_PASSWORD
+        # ¡Poner la contraseña REAL de la DB aquí! O como variable secreta.
+        value: tu-contrasena-de-base-de-datos
+      # -- Configuración de Cache/Session/Queue (Para producción) --
+      - key: BROADCAST_DRIVER
+        value: pusher # O el driver que hayas configurado en config/broadcasting.php para websockets
+      - key: CACHE_DRIVER
+        value: file
+      - key: SESSION_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      # -- Variables de Pusher/WebSockets (si usas beyondcode/laravel-websockets) --
+      - key: PUSHER_APP_ID
+        value: '123' # Un ID cualquiera si no usas Pusher.com
+      - key: PUSHER_APP_KEY
+        value: 'somekey' # Una clave cualquiera si no usas Pusher.com
+      - key: PUSHER_APP_SECRET
+        value: 'somesecret' # Un secreto cualquiera si no usas Pusher.com
+      - key: PUSHER_APP_CLUSTER
+        value: 'mt1' # Clúster de ejemplo, si lo usas
+      # -- Variables AWS (si no usas, puedes dejar dummy o vacías si Render lo permite) --
+      - key: AWS_ACCESS_KEY_ID
+        value: 'dummy_key'
+      - key: AWS_SECRET_ACCESS_KEY
+        value: 'dummy_secret'
+      - key: AWS_BUCKET
+        value: 'dummy_bucket'
+      # ... Añade el resto de tus variables de entorno aquí
+
+  - type: web # Servicio para tu servidor de WebSockets
+    name: tu-app-websockets
+    env: docker
+    repo: https://github.com/DANIELCASHOR2/Wumena.git # MISMO REPO
+    branch: main
+    rootDir: ./
+    plan: free
+    healthCheckPath: /
+    # Puerto donde el servidor de websockets escuchará, Render lo mapeará
+    # a un puerto externo para el acceso.
+    # Asegúrate que tu config/websockets.php escucha en 8000 o el puerto que Render use.
+    # Para beyondcode/laravel-websockets, normalmente escuchan en 6001,
+    # pero Render expone 8000. Tendrás que ajustar la config de Laravel WebSockets
+    # para que el puerto de escucha sea 8000 dentro del contenedor, o usar otra técnica.
+    # Una forma común es en config/websockets.php, poner 'host' => '0.0.0.0', 'port' => env('WEBSOCKETS_PORT', 6001)
+    # y luego en Render, para este servicio, añadir WEBSOCKETS_PORT=8000
+    port: 8000 # O el puerto que websockets:serve use en el contenedor
+    envVars:
+      - key: APP_KEY
+        value: base64:TuAppKeyGenerada # La misma APP_KEY que el API principal
+      - key: PUSHER_APP_ID
+        value: '123'
+      - key: PUSHER_APP_KEY
+        value: 'somekey'
+      - key: PUSHER_APP_SECRET
+        value: 'somesecret'
+      - key: PUSHER_APP_CLUSTER
+        value: 'mt1'
+      # Si configuras tu websockets para escuchar en un puerto específico de ENV
+      - key: WEBSOCKETS_PORT
+        value: '8000' # Esto le dice a tu Laravel WebSockets que escuche en 8000
+
+    # Sobrescribe el comando de inicio para solo correr el servidor de websockets
+    startCommand: "php artisan websockets:serve"
