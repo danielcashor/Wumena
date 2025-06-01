@@ -21,22 +21,26 @@ RUN apk update --no-cache && apk add --no-cache \
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Configura GD antes de instalarlo
 RUN docker-php-ext-configure gd --with-jpeg --with-webp
 
-RUN docker-php-ext-install -j$(nproc) \
-    pdo_mysql \
-    pdo_pgsql \
-    zip \
-    gd \
-    intl \
-    bcmath \
-    ctype \
-    json \
-    mbstring \
-    openssl \
-    tokenizer \
-    xml
+# INSTALACIÓN DE EXTENSIONES - AHORA INDIVIDUALMENTE O EN GRUPOS MUY PEQUEÑOS
+# Si una falla, el error te dirá qué línea falló y cuál es la extensión.
 
+RUN docker-php-ext-install -j$(nproc) pdo_mysql
+RUN docker-php-ext-install -j$(nproc) pdo_pgsql
+RUN docker-php-ext-install -j$(nproc) zip
+RUN docker-php-ext-install -j$(nproc) gd
+RUN docker-php-ext-install -j$(nproc) intl
+RUN docker-php-ext-install -j$(nproc) bcmath
+RUN docker-php-ext-install -j$(nproc) ctype
+RUN docker-php-ext-install -j$(nproc) json
+RUN docker-php-ext-install -j$(nproc) mbstring
+RUN docker-php-ext-install -j$(nproc) openssl
+RUN docker-php-ext-install -j$(nproc) tokenizer
+RUN docker-php-ext-install -j$(nproc) xml
+
+# Limpia dependencias de construcción y caché APK
 RUN apk del $PHPIZE_DEPS build-base \
     && rm -rf /var/cache/apk/*
 
