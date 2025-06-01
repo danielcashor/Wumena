@@ -36,7 +36,7 @@ RUN docker-php-ext-install -j$(nproc) bcmath
 RUN docker-php-ext-install -j$(nproc) ctype
 # La extensión 'json' ya fue removida
 RUN docker-php-ext-install -j$(nproc) mbstring
-RUN docker-php-ext-install -j$(nproc) openssl # Esta línea es la que ahora debería funcionar
+RUN docker-php-ext-install -j$(nproc) openssl
 RUN docker-php-ext-install -j$(nproc) tokenizer
 RUN docker-php-ext-install -j$(nproc) xml
 
