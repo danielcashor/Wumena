@@ -18,24 +18,13 @@ RUN apk update --no-cache && apk add --no-cache \
     sqlite-dev \
     libc-dev \
     build-base \
-    openssl-dev # Mantenemos openssl-dev por si otras extensiones lo necesitan
+    openssl-dev
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-RUN docker-php-ext-configure gd --with-jpeg --with-webp
-
-# Instalación de extensiones - ¡REMOVIDO 'openssl' de esta lista!
-RUN docker-php-ext-install -j$(nproc) pdo_mysql
-RUN docker-php-ext-install -j$(nproc) pdo_pgsql
-RUN docker-php-ext-install -j$(nproc) zip
-RUN docker-php-ext-install -j$(nproc) gd
-RUN docker-php-ext-install -j$(nproc) intl
-RUN docker-php-ext-install -j$(nproc) bcmath
-RUN docker-php-ext-install -j$(nproc) ctype
-RUN docker-php-ext-install -j$(nproc) mbstring
-# REMOVIDA: RUN docker-php-ext-install -j$(nproc) openssl
-RUN docker-php-ext-install -j$(nproc) tokenizer
-RUN docker-php-ext-install -j$(nproc) xml
+# REMOVIDAS TODAS LAS LÍNEAS DE docker-php-ext-configure y docker-php-ext-install aquí
+# La hipótesis es que estas extensiones ya están incluidas o habilitadas en la imagen base
+# Si después del build vemos que faltan, las añadiremos de otra forma.
 
 # Limpia dependencias de construcción y caché APK
 RUN apk del $PHPIZE_DEPS build-base \
