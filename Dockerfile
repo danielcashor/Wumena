@@ -32,7 +32,7 @@ RUN apk del $PHPIZE_DEPS build-base \
 
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
-COPY ./php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+COPY ./zzz-www.conf /usr/local/etc/php-fpm.d/zzz-www.conf
 
 COPY ./supervisord.conf /etc/supervisord.conf
 
