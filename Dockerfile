@@ -16,7 +16,8 @@ RUN apt-get update --yes --no-install-recommends && apt-get install -y \
     libzip-dev \
     # Dependencias para GD
     libpng-dev \
-    libjpeg-dev \
+    # ¡CAMBIO AQUÍ! Nombre de paquete JPEG para Debian
+    libjpeg-turbo8-dev \
     libwebp-dev \
     # Dependencias para Intl
     libicu-dev \
@@ -24,11 +25,9 @@ RUN apt-get update --yes --no-install-recommends && apt-get install -y \
     libonig-dev \
     # Dependencias para XML
     libxml2-dev \
-    # Dependencias para Bcmath, Ctype, Json, Openssl, Tokenizer, Exif (ya suelen venir o son fáciles)
-    # Algunas pueden necesitar paquetes dev si no están ya en la imagen base
-    # (Ej. libssl-dev para openssl, aunque suele venir)
+    # Dependencias para OpenSSL
     libssl-dev \
-    # Herramientas de compilación (build-essential es el equivalente a build-base en Debian)
+    # Herramientas de compilación
     build-essential \
     # Limpieza final
     && apt-get clean \
@@ -50,7 +49,7 @@ RUN docker-php-ext-install -j$(nproc) \
     bcmath \
     mbstring \
     xml \
-    # Si estas últimas dan problemas, puedes quitarlas y ver si están ya habilitadas
+    # Las siguientes son a menudo pre-instaladas o habilitadas
     # ctype \
     # json \
     # openssl \
@@ -58,7 +57,6 @@ RUN docker-php-ext-install -j$(nproc) \
     # exif # Si la necesitas
     && docker-php-ext-configure gd --with-jpeg --with-webp \
     # Habilita cualquier extensión que necesites y que no se habilite automáticamente
-    # Por ejemplo, si openssl está ahí pero no habilitado
     # && docker-php-ext-enable openssl \
     # && docker-php-ext-enable json # Etc.
 
@@ -66,8 +64,7 @@ RUN docker-php-ext-install -j$(nproc) \
 # Copia la configuración de Nginx
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
-# Copia la configuración de PHP-FPM (AHORA EN UNA RUTA DIFERENTE)
-# En imágenes Debian, los pools de PHP-FPM suelen ir en /etc/php/<version>/fpm/pool.d/
+# Copia la configuración de PHP-FPM (ruta para Debian)
 COPY ./zzz-www.conf /etc/php/8.2/fpm/pool.d/zzz-www.conf
 
 # Copia la configuración de Supervisor
