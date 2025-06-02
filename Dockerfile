@@ -12,12 +12,11 @@ RUN apt-get update --yes --no-install-recommends && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # === INSTALACIÓN DE DEPENDENCIAS DE DESARROLLO DE PHP (UNA POR UNA) ===
-# ¡CAMBIO AQUÍ: libjpeg-turbo8-dev a libjpeg62-turbo-dev!
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libpq-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y default-libmysqlclient-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libzip-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libpng-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN apt-get update --yes --no-install-recommends && apt-get install -y libjpeg62-turbo-dev && apt-get clean && rm -rf /var/lib/apt/lists/* # <--- ESTE ES EL CAMBIO
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libjpeg62-turbo-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libwebp-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libicu-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libonig-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -41,10 +40,9 @@ RUN docker-php-ext-install -j$(nproc) \
     bcmath \
     mbstring \
     xml \
-    && docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-configure gd --with-jpeg --with-webp
 
-
-# Copia la configuración de Nginx
+# ¡CAMBIO AQUÍ! La instrucción COPY debe ir en su propia línea
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
 # Copia la configuración de PHP-FPM (ruta para Debian)
