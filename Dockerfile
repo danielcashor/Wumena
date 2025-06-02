@@ -42,7 +42,7 @@ RUN docker-php-ext-install -j$(nproc) \
     xml \
     && docker-php-ext-configure gd --with-jpeg --with-webp
 
-# ¡CAMBIO AQUÍ! La instrucción COPY debe ir en su propia línea
+# Copia la configuración de Nginx
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
 # Copia la configuración de PHP-FPM (ruta para Debian)
@@ -70,4 +70,3 @@ EXPOSE 80
 
 # Comando para iniciar Nginx y PHP-FPM usando Supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
-CMD ["tail", "-f", "/dev/null"]
