@@ -8,26 +8,26 @@ RUN apt-get update --yes --no-install-recommends && apt-get install -y \
     curl \
     supervisor \
     build-essential \
-    # Limpieza parcial aquí, la final se hace después de todas las instalaciones
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Instala las dependencias de desarrollo de PHP
-RUN apt-get update --yes --no-install-recommends && apt-get install -y \
-    libpq-dev \
-    libmysqlclient-dev \
-    libzip-dev \
-    libpng-dev \
-    libjpeg-turbo8-dev \
-    libwebp-dev \
-    libicu-dev \
-    libonig-dev \
-    libxml2-dev \
-    libssl-dev \
-    # Limpieza final de apt-get
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && rm -rf /usr/share/doc /usr/share/man # Reduce tamaño
+# === INSTALACIÓN DE DEPENDENCIAS DE DESARROLLO DE PHP (UNA POR UNA) ===
+# Si una falla, el error te dirá qué línea RUN falló y cuál es la librería.
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libpq-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libmysqlclient-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libzip-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libpng-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libjpeg-turbo8-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libwebp-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libicu-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libonig-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libxml2-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libssl-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Limpieza final de apt-get (movida al final del bloque de libs)
+# No es estrictamente necesaria aquí si cada línea ya limpia, pero no hace daño
+RUN rm -rf /tmp/* /var/tmp/* /usr/share/doc /usr/share/man
+
 
 # Instala Composer globalmente
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -42,7 +42,7 @@ RUN docker-php-ext-install -j$(nproc) \
     bcmath \
     mbstring \
     xml \
-    && docker-php-ext-configure gd --with-jpeg --with-webp
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
 
 
 # Copia la configuración de Nginx
