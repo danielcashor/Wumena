@@ -12,12 +12,12 @@ RUN apt-get update --yes --no-install-recommends && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # === INSTALACIÓN DE DEPENDENCIAS DE DESARROLLO DE PHP (UNA POR UNA) ===
-# ¡CAMBIO AQUÍ: libmysqlclient-dev a default-libmysqlclient-dev!
+# ¡CAMBIO AQUÍ: libjpeg-turbo8-dev a libjpeg62-turbo-dev!
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libpq-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y default-libmysqlclient-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libzip-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libpng-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN apt-get update --yes --no-install-recommends && apt-get install -y libjpeg-turbo8-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y libjpeg62-turbo-dev && apt-get clean && rm -rf /var/lib/apt/lists/* # <--- ESTE ES EL CAMBIO
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libwebp-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libicu-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libonig-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
