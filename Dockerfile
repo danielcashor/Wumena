@@ -45,9 +45,13 @@ RUN docker-php-ext-install -j$(nproc) \
 # Copia la configuración de Nginx
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
-# Copia la configuración de PHP-FPM (ruta para Debian)
-COPY ./zzz-www.conf /etc/php/8.2/fpm/pool.d/zzz-www.conf
-RUN chmod 644 /etc/php/8.2/fpm/pool.d/zzz-www.conf && chown www-data:www-data /etc/php/8.2/fpm/pool.d/zzz-www.conf
+# ¡CAMBIO CLAVE AQUÍ! Copia zzz-www.conf al directorio por defecto de pools de PHP-FPM.
+# Así, php-fpm lo encontrará automáticamente sin necesidad de especificar --fpm-config o --y.
+COPY ./zzz-www.conf /usr/local/etc/php-fpm.d/zzz-www.conf
+# Ajusta permisos si es necesario, aunque en /usr/local/etc/php-fpm.d suele no serlo tanto como en /etc/php
+# RUN chmod 644 /usr/local/etc/php-fpm.d/zzz-www.conf && chown www-data:www-data /usr/local/etc/php-fpm.d/zzz-www.conf
+# La línea de chmod/chown anterior probablemente no es necesaria si el user/group ya son www-data.
+# Si sigue fallando por permisos después de este cambio, volvemos a poner el chmod/chown.
 
 # Copia la configuración de Supervisor
 COPY ./supervisord.conf /etc/supervisord.conf
