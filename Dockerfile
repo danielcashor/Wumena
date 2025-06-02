@@ -12,9 +12,9 @@ RUN apt-get update --yes --no-install-recommends && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # === INSTALACIÓN DE DEPENDENCIAS DE DESARROLLO DE PHP (UNA POR UNA) ===
-# Si una falla, el error te dirá qué línea RUN falló y cuál es la librería.
+# ¡CAMBIO AQUÍ: libmysqlclient-dev a default-libmysqlclient-dev!
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libpq-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN apt-get update --yes --no-install-recommends && apt-get install -y libmysqlclient-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --yes --no-install-recommends && apt-get install -y default-libmysqlclient-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libzip-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libpng-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libjpeg-turbo8-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -24,8 +24,7 @@ RUN apt-get update --yes --no-install-recommends && apt-get install -y libonig-d
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libxml2-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update --yes --no-install-recommends && apt-get install -y libssl-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Limpieza final de apt-get (movida al final del bloque de libs)
-# No es estrictamente necesaria aquí si cada línea ya limpia, pero no hace daño
+# Limpieza final de apt-get
 RUN rm -rf /tmp/* /var/tmp/* /usr/share/doc /usr/share/man
 
 
