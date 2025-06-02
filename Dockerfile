@@ -1,35 +1,30 @@
 # Usa una imagen base de PHP-FPM basada en Debian (más completa)
 FROM php:8.2-fpm
 
-# Instala dependencias del sistema usando apt-get
-# Limpia la caché de apt-get para mantener la imagen pequeña
+# Instala dependencias del sistema generales y Nginx
 RUN apt-get update --yes --no-install-recommends && apt-get install -y \
     nginx \
     git \
     curl \
     supervisor \
-    # Dependencias para PDO_PGSQL
+    build-essential \
+    # Limpieza parcial aquí, la final se hace después de todas las instalaciones
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instala las dependencias de desarrollo de PHP
+RUN apt-get update --yes --no-install-recommends && apt-get install -y \
     libpq-dev \
-    # Dependencias para PDO_MYSQL
     libmysqlclient-dev \
-    # Dependencias para Zip
     libzip-dev \
-    # Dependencias para GD
     libpng-dev \
-    # ¡CAMBIO AQUÍ! Nombre de paquete JPEG para Debian
     libjpeg-turbo8-dev \
     libwebp-dev \
-    # Dependencias para Intl
     libicu-dev \
-    # Dependencias para Mbstring
     libonig-dev \
-    # Dependencias para XML
     libxml2-dev \
-    # Dependencias para OpenSSL
     libssl-dev \
-    # Herramientas de compilación
-    build-essential \
-    # Limpieza final
+    # Limpieza final de apt-get
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && rm -rf /usr/share/doc /usr/share/man # Reduce tamaño
@@ -38,8 +33,6 @@ RUN apt-get update --yes --no-install-recommends && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Instala y habilita extensiones de PHP.
-# En imágenes no-Alpine, docker-php-ext-install suele funcionar bien para las que no son core.
-# Las core como json, openssl, tokenizer, ctype, mbstring ya suelen venir pre-instaladas o habilitadas.
 RUN docker-php-ext-install -j$(nproc) \
     pdo_mysql \
     pdo_pgsql \
@@ -49,16 +42,7 @@ RUN docker-php-ext-install -j$(nproc) \
     bcmath \
     mbstring \
     xml \
-    # Las siguientes son a menudo pre-instaladas o habilitadas
-    # ctype \
-    # json \
-    # openssl \
-    # tokenizer \
-    # exif # Si la necesitas
-    && docker-php-ext-configure gd --with-jpeg --with-webp \
-    # Habilita cualquier extensión que necesites y que no se habilite automáticamente
-    # && docker-php-ext-enable openssl \
-    # && docker-php-ext-enable json # Etc.
+    && docker-php-ext-configure gd --with-jpeg --with-webp
 
 
 # Copia la configuración de Nginx
