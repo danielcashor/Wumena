@@ -47,6 +47,7 @@ COPY ./nginx.conf /etc/nginx/nginx.conf
 
 # Copia la configuración de PHP-FPM (ruta para Debian)
 COPY ./zzz-www.conf /etc/php/8.2/fpm/pool.d/zzz-www.conf
+RUN chmod 644 /etc/php/8.2/fpm/pool.d/zzz-www.conf && chown www-data:www-data /etc/php/8.2/fpm/pool.d/zzz-www.conf
 
 # Copia la configuración de Supervisor
 COPY ./supervisord.conf /etc/supervisord.conf
