@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Chat;
 use App\Models\Mensaje;
-use App\Events\MensajeEnviado;
+use App\Services\PusherApiService; // <--- ¡Asegúrate de que esta línea esté aquí!
 
 class ChatController extends Controller
 {
@@ -15,6 +15,7 @@ class ChatController extends Controller
             'mensaje' => 'required|string',
             'de' => 'required|integer',
             'para' => 'required|integer',
+            'producto_id' => 'required|integer', // Asegúrate de que 'producto_id' esté en la validación
         ]);
 
         // 1. Buscar si ya existe un chat entre ambos usuarios
@@ -30,7 +31,6 @@ class ChatController extends Controller
             })
             ->first();
 
-
         if (!$chat) {
             $chat = Chat::create([
                 'producto_id' => $request->producto_id,
@@ -39,7 +39,6 @@ class ChatController extends Controller
             ]);
         }
 
-
         // 3. Guardar el mensaje en la base de datos
         $mensaje = Mensaje::create([
             'chat_id' => $chat->id,
@@ -47,13 +46,23 @@ class ChatController extends Controller
             'mensaje' => $request->mensaje,
         ]);
 
-        // 4. Emitir el evento a través de websockets
-        broadcast(new MensajeEnviado(
-            $mensaje->mensaje,
-            $mensaje->emisor_id,
-            $request->para,
-            $request->producto_id
-        ))->toOthers();
+        // 4. Emitir el evento a través de Pusher.com usando tu nuevo servicio
+        $pusherService = new PusherApiService();
+
+        // --- CAMBIO AQUÍ: Canal PÚBLICO ---
+        // El nombre del canal es simplemente 'chat.<chat_id>'
+        $channelName = 'chat.' . $chat->id;
+
+        $pusherService->trigger(
+            $channelName, // El canal al que enviar (ej: 'chat.123')
+            'mensaje-enviado', // El nombre del evento (en kebab-case es buena práctica)
+            [
+                'mensaje' => $mensaje->toArray(),
+                'de_usuario_id' => $request->de,
+                'para_usuario_id' => $request->para,
+                'producto_id' => $request->producto_id,
+            ]
+        );
 
         return response()->json([
             'success' => true,
@@ -61,15 +70,15 @@ class ChatController extends Controller
             'mensaje' => $mensaje,
         ]);
     }
+
     public function getChatsUsuario($usuarioId){
         $chats = Chat::where('usuario_1_id', $usuarioId)
-                    ->orWhere('usuario_2_id', $usuarioId)
-                    ->with(['usuario1', 'usuario2', 'producto'])
-                    ->get();
+                     ->orWhere('usuario_2_id', $usuarioId)
+                     ->with(['usuario1', 'usuario2', 'producto'])
+                     ->get();
 
         return response()->json($chats);
     }
-
 
     public function obtenerMensajes($chatId)
     {
