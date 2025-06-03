@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ProductoController extends Controller {
 
@@ -13,23 +14,32 @@ class ProductoController extends Controller {
         return response()->json($productos);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $validador = $request->validate([
             'id_usuario' => 'required|exists:usuarios,id',
             'nombre' => 'required|string|max:150',
             'precio' => 'required|numeric',
             'descripcion' => 'required|string',
             'categoria' => 'required|string|max:50',
-            'imagen'      => 'nullable|image|max:2048'
+            'imagen'     => 'nullable|image|max:2048'
         ]);
 
         $validador['estado'] = 'Disponible';
-        if ($request->hasFile('imagen')) {
-            $path = $request->file('imagen')->store('productos', 'public');
-            $validador['imagen'] = $path;
-        }
-        $producto = Producto::create($validador);
 
+        if ($request->hasFile('imagen')) {
+            // Sube la imagen a Cloudinary
+            $uploadedFile = Cloudinary::upload($request->file('imagen')->getRealPath());
+
+            // Obtén la URL segura de la imagen en Cloudinary
+            // Esta URL es la que guardarás en tu base de datos
+            $imageUrl = $uploadedFile->getSecurePath();
+
+            // Asigna la URL de Cloudinary al validador para guardarla en la base de datos
+            $validador['imagen'] = $imageUrl;
+        }
+
+        $producto = Producto::create($validador);
 
         return response()->json($producto, 201); // 201 Created
     }
