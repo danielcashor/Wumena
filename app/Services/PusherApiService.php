@@ -18,7 +18,6 @@ class PusherApiService
         // Asegúrate de que estas variables de entorno estén configuradas en tu .env (y en Render)
         $this->appId = env('PUSHER_APP_ID');
         $this->appKey = env('PUSHER_APP_KEY');
-        $this->appKey = env('PUSHER_APP_KEY'); // Redundancia, pero lo mantengo por si acaso
         $this->appSecret = env('PUSHER_APP_SECRET');
         $this->cluster = env('PUSHER_APP_CLUSTER');
 
