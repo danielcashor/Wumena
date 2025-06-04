@@ -54,7 +54,7 @@ class PusherApiService
 
         // --- CORRECCIÓN 2: json_encode($data) para el payload ---
         $payload = json_encode([
-            'name' => $event,
+            'name' => 'test-event',
             'data' => json_encode($data), // ¡Importante! 'data' debe ser una cadena JSON
             'channels' => $channels,
         ]);
