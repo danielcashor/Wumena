@@ -6,11 +6,14 @@ use Illuminate\Http\Request;
 use App\Models\Chat;
 use App\Models\Mensaje;
 use App\Services\PusherApiService; // <--- ¡Asegúrate de que esta línea esté aquí!
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
     public function enviarMensaje(Request $request)
     {
+        Log::info('DEBUG: Entrando en ChatController@enviarMensaje. Iniciando proceso de envío.');
+
         $request->validate([
             'mensaje' => 'required|string',
             'de' => 'required|integer',
