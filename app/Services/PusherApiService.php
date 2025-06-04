@@ -21,6 +21,13 @@ class PusherApiService
         $this->appSecret = env('PUSHER_APP_SECRET');
         $this->cluster = env('PUSHER_APP_CLUSTER');
 
+        // Log para verificar que las credenciales se están cargando
+        // NO loguear el App Secret en producción. Solo para depuración.
+        Log::info('PusherApiService initialized with:');
+        Log::info('  App ID: ' . $this->appId);
+        Log::info('  App Key: ' . $this->appKey);
+        Log::info('  Cluster: ' . $this->cluster);
+
         $baseUri = "https://api-{$this->cluster}.pusher.com/apps/{$this->appId}/";
 
         $this->client = new Client([
@@ -45,9 +52,10 @@ class PusherApiService
         // Pusher espera un array de canales
         $channels = (array) $channels;
 
+        // --- CORRECCIÓN 2: json_encode($data) para el payload ---
         $payload = json_encode([
             'name' => $event,
-            'data' => $data,
+            'data' => json_encode($data), // ¡Importante! 'data' debe ser una cadena JSON
             'channels' => $channels,
         ]);
 
@@ -70,20 +78,21 @@ class PusherApiService
         // Ordenar los parámetros alfabéticamente por clave (requerido por Pusher)
         ksort($query);
 
-        // Construir la cadena para firmar
-        $string_to_sign = "POST\n{$path}\n" . http_build_query($query) . "\n";
-
-        // ¡IMPORTANTE! Quitar el hash MD5 de la string para firmar si no es parte de la query.
-        // La documentación de Pusher 1.2 indica que body_md5 va en la query y el payload en el cuerpo.
-        // La firma incluye el body_md5 en la query string.
-        // La línea correcta para la firma es esta, sin el payload al final de la string_to_sign:
-        $string_to_sign = "POST\n{$path}\n" . http_build_query($query); // String sin el payload para la firma
+        // --- CORRECCIÓN 1: Construir la cadena para firmar con RFC 3986 ---
+        $queryString = http_build_query($query, '', '&', PHP_QUERY_RFC3986); // Codificación RFC 3986
+        $string_to_sign = "POST\n{$path}\n{$queryString}"; // Cadena a firmar
 
         // Calcular la firma
         $auth_signature = hash_hmac('sha256', $string_to_sign, $this->appSecret, false);
 
         // Añadir la firma a los parámetros de la query
         $query['auth_signature'] = $auth_signature;
+
+        // Logs para depuración antes de enviar la petición
+        Log::info('PusherApiService: Attempting to send event.');
+        Log::info('  Request Path: ' . $path);
+        Log::info('  Query Params: ' . json_encode($query));
+        Log::info('  Request Body (Payload): ' . $payload);
 
         try {
             $response = $this->client->post($path, [
@@ -92,19 +101,28 @@ class PusherApiService
             ]);
 
             $statusCode = $response->getStatusCode();
+            $body = $response->getBody()->getContents(); // Capturar el cuerpo siempre
+
             if ($statusCode >= 200 && $statusCode < 300) {
-                Log::info("Evento Pusher enviado con éxito al canal: " . implode(', ', $channels) . ", Evento: " . $event);
+                Log::info("PusherApiService: Evento enviado con éxito. Status: {$statusCode}. Response: {$body}");
                 return true;
             } else {
-                $body = $response->getBody()->getContents();
-                Log::error("Error Pusher: Código de estado {$statusCode}. Respuesta: {$body}");
+                Log::error("PusherApiService: Error del servidor Pusher. Status: {$statusCode}. Response: {$body}");
                 return false;
             }
         } catch (\GuzzleHttp\Exception\ConnectException $e) {
-            Log::error("Error de conexión a Pusher: " . $e->getMessage() . " - Verifica PUSHER_APP_CLUSTER y conectividad.");
+            Log::error("PusherApiService: Error de CONEXIÓN a Pusher. " . $e->getMessage() . " - Verifica PUSHER_APP_CLUSTER y conectividad.");
+            return false;
+        } catch (\GuzzleHttp\Exception\ClientException $e) { // Errores 4xx (ej: 401 Unauthorized)
+            $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
+            Log::error("PusherApiService: Error de cliente (4xx) al enviar evento. Status: " . $e->getCode() . ". Response: " . $responseBody);
+            return false;
+        } catch (\GuzzleHttp\Exception\ServerException $e) { // Errores 5xx
+            $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
+            Log::error("PusherApiService: Error de servidor (5xx) al enviar evento. Status: " . $e->getCode() . ". Response: " . $responseBody);
             return false;
         } catch (\Exception $e) {
-            Log::error("Error al enviar evento Pusher: " . $e->getMessage());
+            Log::error("PusherApiService: Error inesperado al enviar evento: " . $e->getMessage());
             return false;
         }
     }
