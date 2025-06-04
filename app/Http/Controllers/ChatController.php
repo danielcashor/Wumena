@@ -45,16 +45,6 @@ class ChatController extends Controller
             'emisor_id' => $request->de,
             'mensaje' => $request->mensaje,
         ]);
-        dd([
-            'PUSHER_APP_ID' => env('PUSHER_APP_ID'),
-            'PUSHER_APP_KEY' => env('PUSHER_APP_KEY'),
-            'PUSHER_APP_SECRET' => env('PUSHER_APP_SECRET'),
-            'PUSHER_APP_CLUSTER' => env('PUSHER_APP_CLUSTER'),
-            'Chat ID' => $chat->id,
-            'Canal' => 'chat.' . $chat->id,
-            'Evento' => 'mensaje-enviado',
-            'Mensaje Data' => $mensaje->toArray(),
-        ]);
 
         // 4. Emitir el evento a través de Pusher.com usando tu nuevo servicio
         $pusherService = new PusherApiService();
