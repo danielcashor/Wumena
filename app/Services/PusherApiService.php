@@ -64,14 +64,21 @@ class PusherApiService
             return false;
         }
 
-        $path = "events";
+        // --- CAMBIO AQUÍ: Definimos dos variables de ruta ---
+        // Path para la petición Guzzle. Se mantiene como "events" porque la baseUri ya incluye "/apps/{appId}/"
+        $requestApiPath = "events";
+
+        // Path COMPLETO requerido para la firma (incluye /apps/{appId}/)
+        $signingPath = "/apps/{$this->appId}/events";
+        // --- FIN CAMBIO ---
+
         $auth_timestamp = time();
 
         // Parámetros de la query para la autenticación
         $query = [
             'auth_key' => $this->appKey,
             'auth_timestamp' => $auth_timestamp,
-            'auth_version' => '1.0', // Versión de la API de Pusher
+            'auth_version' => '1.0', // Versión de la API de Pusher (corrección anterior)
             'body_md5' => md5($payload), // Hash MD5 del cuerpo de la petición
         ];
 
@@ -80,7 +87,9 @@ class PusherApiService
 
         // --- CORRECCIÓN 1: Construir la cadena para firmar con RFC 3986 ---
         $queryString = http_build_query($query, '', '&', PHP_QUERY_RFC3986); // Codificación RFC 3986
-        $string_to_sign = "POST\n{$path}\n{$queryString}"; // Cadena a firmar
+
+        // --- CAMBIO CLAVE AQUÍ: Usamos $signingPath en la cadena a firmar ---
+        $string_to_sign = "POST\n{$signingPath}\n{$queryString}"; // Cadena a firmar
 
         // Calcular la firma
         $auth_signature = hash_hmac('sha256', $string_to_sign, $this->appSecret, false);
@@ -88,14 +97,18 @@ class PusherApiService
         // Añadir la firma a los parámetros de la query
         $query['auth_signature'] = $auth_signature;
 
-        // Logs para depuración antes de enviar la petición
+        // Logs para depuración antes de enviar la petición (actualizados con las nuevas variables)
         Log::info('PusherApiService: Attempting to send event.');
-        Log::info('  Request Path: ' . $path);
+        Log::info('  Request Path (Guzzle): ' . $requestApiPath); // Log para Guzzle
+        Log::info('  Signing Path: ' . $signingPath); // Log para la firma
         Log::info('  Query Params: ' . json_encode($query));
         Log::info('  Request Body (Payload): ' . $payload);
+        Log::info('  String to Sign: ' . $string_to_sign); // Verifica que esta sea la correcta
+        Log::info('  Generated Signature: ' . $auth_signature); // Y esta tambien
 
         try {
-            $response = $this->client->post($path, [
+            // Usamos $requestApiPath para la petición Guzzle
+            $response = $this->client->post($requestApiPath, [
                 'query' => $query,
                 'body' => $payload,
             ]);
