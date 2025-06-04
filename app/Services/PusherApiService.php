@@ -71,7 +71,7 @@ class PusherApiService
         $query = [
             'auth_key' => $this->appKey,
             'auth_timestamp' => $auth_timestamp,
-            'auth_version' => '1.2', // Versión de la API de Pusher
+            'auth_version' => '1.0', // Versión de la API de Pusher
             'body_md5' => md5($payload), // Hash MD5 del cuerpo de la petición
         ];
 
